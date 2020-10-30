@@ -69,21 +69,33 @@ var (
 )
 
 type MPD struct {
-	XMLNs                      *string   `xml:"xmlns,attr"`
-	Profiles                   *string   `xml:"profiles,attr"`
-	Type                       *string   `xml:"type,attr"`
-	MediaPresentationDuration  *string   `xml:"mediaPresentationDuration,attr"`
-	MinBufferTime              *string   `xml:"minBufferTime,attr"`
-	AvailabilityStartTime      *string   `xml:"availabilityStartTime,attr,omitempty"`
-	MinimumUpdatePeriod        *string   `xml:"minimumUpdatePeriod,attr"`
-	PublishTime                *string   `xml:"publishTime,attr"`
-	TimeShiftBufferDepth       *string   `xml:"timeShiftBufferDepth,attr"`
-	SuggestedPresentationDelay *Duration `xml:"suggestedPresentationDelay,attr,omitempty"`
-	BaseURL                    string    `xml:"BaseURL,omitempty"`
-	Location                   string    `xml:"Location,omitempty"`
+	XMLNs                      *string               `xml:"xmlns,attr"`
+	ID                         *string               `xml:"id,attr"`
+	Profiles                   *string               `xml:"profiles,attr"`
+	Type                       *string               `xml:"type,attr"`
+	MediaPresentationDuration  *string               `xml:"mediaPresentationDuration,attr"`
+	MinBufferTime              *string               `xml:"minBufferTime,attr"`
+	AvailabilityStartTime      *string               `xml:"availabilityStartTime,attr,omitempty"`
+	MinimumUpdatePeriod        *string               `xml:"minimumUpdatePeriod,attr"`
+	MaxSegmentDuration         *Duration             `xml:"maxSegmentDuration,attr,omitempty"`
+	PublishTime                *string               `xml:"publishTime,attr"`
+	TimeShiftBufferDepth       *string               `xml:"timeShiftBufferDepth,attr"`
+	SuggestedPresentationDelay *Duration             `xml:"suggestedPresentationDelay,attr,omitempty"`
+	BaseURL                    string                `xml:"BaseURL,omitempty"`
+	Location                   string                `xml:"Location,omitempty"`
+	ProgramInformations        []*ProgramInformation `xml:"ProgramInformation"`
+	ServiceDescriptions        []*ServiceDescription `xml:"ServiceDescription"`
 	period                     *Period
 	Periods                    []*Period       `xml:"Period,omitempty"`
 	UTCTiming                  *DescriptorType `xml:"UTCTiming,omitempty"`
+}
+
+type ProgramInformation struct {
+	Lang               string `xml:"lang,attr,omitempty"`
+	MoreInformationURL string `xml:"moreInformationURL,attr,omitempty"`
+	Title              string `xml:"Title,omitempty"`
+	Source             string `xml:"Source,omitempty"`
+	Copyright          string `xml:"Copyright,omitempty"`
 }
 
 type Period struct {
@@ -102,6 +114,16 @@ type DescriptorType struct {
 	SchemeIDURI *string `xml:"schemeIdUri,attr"`
 	Value       *string `xml:"value,attr"`
 	ID          *string `xml:"id,attr"`
+}
+
+type ProducerReferenceTime struct {
+	ID                string          `xml:"id,attr"`
+	Inband            bool            `xml:"inband,attr,omitempty"`
+	Type              string          `xml:"type,attr,omitempty"` // Default is encoder
+	ApplicationScheme string          `xml:"applicationScheme,attr,omitempty"`
+	WallClockTime     string          `xml:"wallClockTime,attr"`
+	PresentationTime  uint64          `xml:"presentationTime,attr"`
+	UTCTiming         *DescriptorType `xml:"UTCTiming,omitempty"`
 }
 
 // ISO 23009-1-2014 5.3.7
@@ -169,26 +191,27 @@ type dtoAdaptationSet struct {
 
 type AdaptationSet struct {
 	CommonAttributesAndElements
-	XMLName            xml.Name          `xml:"AdaptationSet"`
-	ID                 *string           `xml:"id,attr"`
-	SegmentAlignment   *bool             `xml:"segmentAlignment,attr"`
-	Lang               *string           `xml:"lang,attr"`
-	Group              *string           `xml:"group,attr"`
-	PAR                *string           `xml:"par,attr"`
-	MinBandwidth       *string           `xml:"minBandwidth,attr"`
-	MaxBandwidth       *string           `xml:"maxBandwidth,attr"`
-	MinWidth           *string           `xml:"minWidth,attr"`
-	MaxWidth           *string           `xml:"maxWidth,attr"`
-	MinHeight          *string           `xml:"minHeight,attr"`
-	MaxHeight          *string           `xml:"maxHeight,attr"`
-	MaxFrameRate       *string           `xml:"maxFrameRate,attr"`
-	ContentType        *string           `xml:"contentType,attr"`
-	Roles              []*Role           `xml:"Role,omitempty"`
-	SegmentBase        *SegmentBase      `xml:"SegmentBase,omitempty"`
-	SegmentList        *SegmentList      `xml:"SegmentList,omitempty"`
-	SegmentTemplate    *SegmentTemplate  `xml:"SegmentTemplate,omitempty"` // Live Profile Only
-	Representations    []*Representation `xml:"Representation,omitempty"`
-	AccessibilityElems []*Accessibility  `xml:"Accessibility,omitempty"`
+	XMLName               xml.Name               `xml:"AdaptationSet"`
+	ID                    *string                `xml:"id,attr"`
+	SegmentAlignment      *bool                  `xml:"segmentAlignment,attr"`
+	Lang                  *string                `xml:"lang,attr"`
+	Group                 *string                `xml:"group,attr"`
+	PAR                   *string                `xml:"par,attr"`
+	MinBandwidth          *string                `xml:"minBandwidth,attr"`
+	MaxBandwidth          *string                `xml:"maxBandwidth,attr"`
+	MinWidth              *string                `xml:"minWidth,attr"`
+	MaxWidth              *string                `xml:"maxWidth,attr"`
+	MinHeight             *string                `xml:"minHeight,attr"`
+	MaxHeight             *string                `xml:"maxHeight,attr"`
+	MaxFrameRate          *string                `xml:"maxFrameRate,attr"`
+	ContentType           *string                `xml:"contentType,attr"`
+	Roles                 []*Role                `xml:"Role,omitempty"`
+	ProducerReferenceTime *ProducerReferenceTime `xml:"ProducerReferenceTime,omitempty"`
+	SegmentBase           *SegmentBase           `xml:"SegmentBase,omitempty"`
+	SegmentList           *SegmentList           `xml:"SegmentList,omitempty"`
+	SegmentTemplate       *SegmentTemplate       `xml:"SegmentTemplate,omitempty"` // Live Profile Only
+	Representations       []*Representation      `xml:"Representation,omitempty"`
+	AccessibilityElems    []*Accessibility       `xml:"Accessibility,omitempty"`
 }
 
 func (as *AdaptationSet) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
@@ -202,6 +225,26 @@ func (as *AdaptationSet) UnmarshalXML(d *xml.Decoder, start xml.StartElement) er
 		as.ContentProtection[i] = n.ContentProtection[i]
 	}
 	return nil
+}
+
+// ServiceDescription for DASH service
+type ServiceDescription struct {
+	ID            uint64          `xml:"id,attr"`
+	Scope         *DescriptorType `xml:"Scope,omitempty"`
+	Latencies     []*Latency      `xml:"Latency"`
+	PlaybackRates []*PlaybackRate `xml:"PlaybackRate"`
+}
+
+type Latency struct {
+	Max         *string `xml:"max,attr"`
+	Min         *string `xml:"min,attr"`
+	ReferenceID uint64  `xml:"referenceId,attr"`
+	Target      *string `xml:"target,attr"`
+}
+
+type PlaybackRate struct {
+	Max *string `xml:"max,attr"`
+	Min *string `xml:"min,attr"`
 }
 
 // Constants for DRM / ContentProtection
