@@ -181,6 +181,7 @@ type AdaptationSet struct {
 	MaxWidth           *string           `xml:"maxWidth,attr"`
 	MinHeight          *string           `xml:"minHeight,attr"`
 	MaxHeight          *string           `xml:"maxHeight,attr"`
+	MaxFrameRate       *string           `xml:"maxFrameRate,attr"`
 	ContentType        *string           `xml:"contentType,attr"`
 	Roles              []*Role           `xml:"Role,omitempty"`
 	SegmentBase        *SegmentBase      `xml:"SegmentBase,omitempty"`
@@ -351,14 +352,16 @@ type Role struct {
 
 // Segment Template is for Live Profile Only
 type SegmentTemplate struct {
-	AdaptationSet          *AdaptationSet   `xml:"-"`
-	SegmentTimeline        *SegmentTimeline `xml:"SegmentTimeline,omitempty"`
-	PresentationTimeOffset *uint64          `xml:"presentationTimeOffset,attr,omitempty"`
-	Duration               *int64           `xml:"duration,attr"`
-	Initialization         *string          `xml:"initialization,attr"`
-	Media                  *string          `xml:"media,attr"`
-	StartNumber            *int64           `xml:"startNumber,attr"`
-	Timescale              *int64           `xml:"timescale,attr"`
+	AdaptationSet            *AdaptationSet   `xml:"-"`
+	SegmentTimeline          *SegmentTimeline `xml:"SegmentTimeline,omitempty"`
+	PresentationTimeOffset   *uint64          `xml:"presentationTimeOffset,attr,omitempty"`
+	Duration                 *int64           `xml:"duration,attr"`
+	Initialization           *string          `xml:"initialization,attr"`
+	Media                    *string          `xml:"media,attr"`
+	StartNumber              *int64           `xml:"startNumber,attr"`
+	Timescale                *int64           `xml:"timescale,attr"`
+	AvailabilityTimeOffset   *float32         `xml:"availabilityTimeOffset,attr,omitempty"`
+	AvailabilityTimeComplete *bool            `xml:"availabilityTimeComplete,attr,omitempty"`
 }
 
 type Representation struct {
